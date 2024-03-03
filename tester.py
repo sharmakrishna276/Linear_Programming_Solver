@@ -1,11 +1,12 @@
 import pulp
 import numpy as np
 import random
+import math
 
 pulp.LpSolverDefault.msg = 0
 
 def input_generator(max_min, A, b, c, constraint):
-    f = open("testcase.txt", "w")
+    f = open("input.txt", "w")
     f.write("[objective]\n")
 
     if max_min:
@@ -28,7 +29,7 @@ def input_generator(max_min, A, b, c, constraint):
     for i in range(m):
         f.write(str(b[i]) + "\n")
 
-    f.write("\n[contraint_types]\n")
+    f.write("\n[constraint_types]\n")
 
     for i in range(m):
         if constraint[i] == 0:
@@ -60,7 +61,7 @@ def generate_lp_problem(n, m):
     else:
         prob = pulp.LpProblem("LP Problem", pulp.LpMinimize)
 
-    x = [pulp.LpVariable(f'x{i}', lowBound=0) for i in range(n)]
+    x = [pulp.LpVariable(f'x{i}', lowBound=None) for i in range(n)]
     prob += pulp.lpDot(c, x)
 
     constraint = []
