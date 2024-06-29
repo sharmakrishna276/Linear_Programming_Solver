@@ -1,99 +1,33 @@
-import pulp
-import numpy as np
-import random
-import math
+f = open("command.txt", "r")
+f1 = open("answer.txt", "w")
 
-pulp.LpSolverDefault.msg = 0
+content = f.readlines()
 
-def input_generator(max_min, A, b, c, constraint):
-    f = open("input.txt", "w")
-    f.write("[objective]\n")
+for i in range(len(content)):
 
-    if max_min:
-        f.write("maximize\n\n[A]\n")
-    else:
-        f.write("minimize\n\n[A]\n")
+    if len(content[i]):
+        if (content[i][0]=="S" and content[i][1]=="t"):
+            new_line = content[i].strip()
+            f1.write(new_line[8:].lower())
+            if (new_line[8:]=="Optimal"):
+                for j in range(i+1, len(content)):
+                    f1.write(content[-1][15:])
+                    break
 
-    m = len(A)
-    n = len(A[0])
+f.close()
+f1.close()
 
-    for i in range(m):
-        f.write(str(A[i][0]))
+def compare_files(file1_path, file2_path):
+    with open(file1_path, 'r') as file1:
+        with open(file2_path, 'r') as file2:
+            for line1, line2 in zip(file1, file2):
+                if line1 != line2:
+                    return False
+    return sum(1 for _ in open(file1_path)) == sum(1 for _ in open(file2_path))
 
-        for j in range(1, n):
-            f.write(", " + str(A[i][j]))
-        f.write("\n")
-
-    f.write("\n[b]\n")
-
-    for i in range(m):
-        f.write(str(b[i]) + "\n")
-
-    f.write("\n[constraint_types]\n")
-
-    for i in range(m):
-        if constraint[i] == 0:
-            f.write("=")
-        elif constraint[i] == 1:
-            f.write(">=")
-        else:
-            f.write("<=")
-
-        f.write("\n")
-
-    f.write("\n[c]\n")
-    f.write(str(c[0]))
-
-    for i in range(1, n):
-        f.write(", " + str(c[i]))
-
-    f.close()
-
-
-def generate_lp_problem(n, m):
-    max_min = random.randint(0, 1)
-    c = np.round(np.random.uniform(-100, 100, n), 3)
-    A = np.round(np.random.uniform(-100, 100, (m, n)), 3)
-    b = np.round(np.random.uniform(-1000, 1000, m), 3)
-
-    if max_min:
-        prob = pulp.LpProblem("LP Problem", pulp.LpMaximize)
-    else:
-        prob = pulp.LpProblem("LP Problem", pulp.LpMinimize)
-
-    x = [pulp.LpVariable(f'x{i}', lowBound=None) for i in range(n)]
-    prob += pulp.lpDot(c, x)
-
-    constraint = []
-
-    for i in range(m):
-        less_grt = random.randint(0, 2)
-        if less_grt == 0:
-            prob += pulp.lpDot(A[i], x) == b[i]
-        elif less_grt == 1:
-            prob += pulp.lpDot(A[i], x) >= b[i]
-        else:
-            prob += pulp.lpDot(A[i], x) <= b[i]
-        constraint.append(less_grt)
-
-    return max_min, prob, A, b, c, constraint
-
-
-def test_lp_problem(prob):
-    prob.solve()
-    print("Status:", pulp.LpStatus[prob.status])
-
-    for v in prob.variables():
-        print(v.name, "=", v.varValue)
-
-    print("Optimal value:", pulp.value(prob.objective))
-
-
-n = random.randint(1, 10)
-m = random.randint(1, 10)
-max_min, prob, A, b, c, constraint = generate_lp_problem(n, m)
-print("LP problem generated:")
-print(prob)
-print("Testing LP problem:")
-test_lp_problem(prob)
-input_generator(max_min, A, b, c, constraint)
+file1_path = 'my_output.txt'
+file2_path = 'answer.txt'
+if compare_files(file1_path, file2_path):
+    print("Correct")
+else:
+    print("Incorrect")
